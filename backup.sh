@@ -42,13 +42,12 @@ function Cancel() {
 
 
 # TODO: customize the directory to store the backup data
-backup_root_dir='/mnt/wd-disk/backup/nextcloud'
-backup_dir="${backup_root_dir}/$(date +'%Y%m%d_%H%M%S')"
+backup_dir='/mnt/wd-disk/backup/nextcloud'
+backup_root_dir="${backup_dir}/root"
+backup_data_dir="${backup_dir}/data"
+backup_db_dir="${backup_dir}/db"
 
-[ -d "${backup_dir}" ] && \
-    fatal "FATAL: The backup dir ${backup_dir} already exists!"
-
-mkdir -p ${backup_dir}
+mkdir -p ${backup_root_dir} ${backup_data_dir} ${backup_db_dir}
 
 
 #
@@ -60,20 +59,14 @@ echo "Done"
 echo
 
 
-#
-# Backup whole nextcloud install and data folder
-#
-install_file='install.tar.gz'
-data_file='data.tar.gz'
-
 # TODO: customize the nextcloud folder on host machine to backup, including
 # data, config, theme folders.
 install_to_backup='/home/murray/nextcloud/root'
 data_to_backup='/home/murray/nextcloud/data'
 
 echo "Creating backup of whole nextcloud install and data folder..."
-tar -cpzf "${backup_dir}/${install_file}" -C ${install_to_backup} .
-tar -cpzf "${backup_dir}/${data_file}" -C ${data_to_backup} .
+rsync -av ${install_to_backup} ${backup_root_dir}
+rsync -av ${data_to_backup} ${backup_data_dir}
 echo "Done"
 echo
 
@@ -86,12 +79,12 @@ db_user='nextcloud'
 db_password='nextcloud'
 db_name='nextcloud'
 
-db_file='db.sql'
+db_backup_file="db-$(date +'%Y%m%d_%H%M%S').sql"
 
 echo "Creating backup of nextcloud database..."
-docker-compose exec db bash -c "mysqldump --single-transaction \
-    -h localhost -u ${db_user} -p${db_password} ${db_name} > /tmp/${db_file}"
-docker cp "$(docker-compose ps -q db)":/tmp/${db_file} ${backup_dir}
+docker-compose exec db bash -c "mysqldump --single-transaction -h localhost \
+    -u ${db_user} -p${db_password} ${db_name} > /tmp/${db_backup_file}"
+docker cp "$(docker-compose ps -q db)":/tmp/${db_backup_file} ${backup_db_dir}
 echo "Done"
 echo
 
@@ -105,30 +98,28 @@ ExitMaintenance
 #
 # Check the backup successful or not
 #
-[[ ! -f "${backup_dir}/${install_file}" ]] && \
-    fatal "FATAL: ${install_file} failed to backup!"
-[[ ! -f "${backup_dir}/${data_file}" ]] && \
-    fatal "FATAL: ${data_file} failed to backup!"
-[[ ! -f "${backup_dir}/${db_file}" ]] && \
-    fatal "FATAL: ${db_file} failed to backup!"
+[[ ! -f "${backup_db_dir}/${db_backup_file}" ]] && \
+    fatal "FATAL: ${db_backup_file} failed to backup!"
 
 
 #
-# Remove old backups
+# Remove old DB backups
 #
 
 # TODO: customize the number of backup to save
 num_backups_keep=2
+db_backup_pattern="${backup_db_dir}/db-*.sql"
 
 if (( ${num_backups_keep} != 0 )); then
-    num_backups=$(ls -l ${backup_root_dir} | grep -c ^d)
+    num_backups=$(ls -l ${db_backup_pattern} | wc -l)
 
     if (( ${num_backups} > ${num_backups_keep} )); then
-        echo "Removing old backups..."
-        ls -t ${backup_root_dir} | tail -$(( num_backups - num_backups_keep )) \
-            | while read dir_to_remove; do
-                echo "${dir_to_remove}"
-                rm -r ${backup_root_dir}/${dir_to_remove}
+        echo "Removing old DB backups..."
+        ls -t ${db_backup_pattern} \
+            | tail -$(( num_backups - num_backups_keep )) \
+            | while read backup_to_remove; do
+                echo "${backup_to_remove}"
+                rm -r ${backup_to_remove}
                 echo "Done"
                 echo
             done

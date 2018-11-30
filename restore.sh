@@ -13,25 +13,17 @@ function fatal() {
 [ "$(id -u)" != "0" ] && fatal "FATAL: This script has to be run as root!"
 
 
-#
-# Check the path where the backup to restore locates is given
-#
-usage="\nUsage: restore.sh <path_of_backup_to_restore>\n"
-[ $# != "1" ] && fatal "FATAL: No path of backup to restore given!${usage}"
-
-backup_to_restore=$1
-
 # TODO: customize the name of backup files
-install_file='install.tar.gz'
-data_file='data.tar.gz'
-db_file='db.sql'
+backup_dir='/mnt/wd-disk/backup/nextcloud/'
+backup_root_dir="${backup_dir}/root"
+backup_data_dir="${backup_dir}/data"
+backup_db_dir="${backup_dir}/db"
+db_to_restore="$(ls -t ${backup_db_dir}/db-*.sql | head -1)"
 
-[ ! -d "${backup_to_restore}/${install_file}" ] && \
-    fatal "FATAL: Backup file of nextcloud install folder not exist!${usage}"
-[ ! -d "${backup_to_restore}/${data_file}" ] && \
-    fatal "FATAL: Backup file of nextcloud data folder not exist!${usage}"
-[ ! -d "${backup_to_restore}/${db_file}" ] && \
-    fatal "FATAL: Backup file of nextcloud db not exist!${usage}"
+
+[ -z "${db_to_restore}" ] && \
+    fatal "FATAL: Backup file of nextcloud db not exist!"
+
 
 #
 # Enter maintenance
@@ -68,13 +60,13 @@ echo
 # Restore nextcloud folders
 #
 echo "Restoring nextcloud install folder..."
-tar -xmpzf "${backup_to_restore}/${install_file}" -C ${nextcloud_root_dir}
+rsync -av ${backup_root_dir} ${nextcloud_root_dir}
 echo "Done"
 echo
 
 
 echo "Restoring nextcloud data folder..."
-tar -xmpzf "${backup_to_restore}/${data_file}" -C ${nextcloud_data_dir}
+rsync -av ${backup_data_dir} ${nextcloud_data_dir}
 echo "Done"
 echo
 
@@ -100,8 +92,7 @@ echo "Done"
 echo
 
 echo "Restoring nextcloud database..."
-docker cp ${backup_to_restore}/${db_file} \
-    "$(docker-compose ps -q db)":/tmp/${db_file}
+docker cp ${db_to_restore} "$(docker-compose ps -q db)":/tmp/${db_file}
 docker-compose exec db bash -c "mysql -h localhost -u ${db_user} \
     -p${db_password} ${db_name} < /tmp/${db_file}"
 echo "Done"

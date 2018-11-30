@@ -38,16 +38,18 @@ $ mkdir -p ~/nextcloud/root ~/nextcloud/db
 
 # I put the data folder to the USB disk
 # After edit `/etc/fstab`, reboot the computer
-# and `chown -r www-data:www-data /mnt/wd-disk/nextcloud/data`
 # `/etc/fstab` example:
 $ cat /etc/fstab
 
 # WD My Passport 2TB
-UUID=F474B7AA74B76DCC   /mnt/wd-disk    ntfs-3g defaults,permissions,uid=1000,gid=1000  0   0
+UUID=F474B7AA74B76DCC   /mnt/wd-disk    ntfs-3g defaults,permissions  0   0
 
 # Store the nextcloud data to WD My Passport
 /mnt/wd-disk/nextcloud/data               /home/murray/nextcloud/data none bind
 
+# After reboot, one time modification
+$ sudo chmod -R 700 /mnt/wd-disk/nextcloud
+$ sudo chown -R www-data:www-data /mnt/wd-disk/nextcloud/data
 ```
 
 5. IMPORTANT: Customize `~/git/private-cloud/nextcloud.yml`.

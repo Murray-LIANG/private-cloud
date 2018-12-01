@@ -6,7 +6,7 @@ function fatal() {
     exit 1
 }
 
-OCC_CMD='docker-compose exec -u www-data app php occ'
+OCC_CMD='docker-compose exec -T -u www-data app php occ'
 
 function ExitMaintenance() {
     echo "Exiting maintenance mode..."
@@ -82,8 +82,9 @@ db_name='nextcloud'
 db_backup_file="db-$(date +'%Y%m%d_%H%M%S').sql"
 
 echo "Creating backup of nextcloud database..."
-docker-compose exec db bash -c "mysqldump --single-transaction -h localhost \
-    -u ${db_user} -p${db_password} ${db_name} > /tmp/${db_backup_file}"
+docker-compose exec -T db bash -c "mysqldump --single-transaction \
+    -h localhost -u ${db_user} -p${db_password} ${db_name} \
+    > /tmp/${db_backup_file}"
 docker cp "$(docker-compose ps -q db)":/tmp/${db_backup_file} ${backup_db_dir}
 echo "Done"
 echo

@@ -73,7 +73,10 @@ $ sudo backup.sh
 # Or set in crontab for backup at 1 a.m every day
 $ sudo crontab -e
 
-0 1 * * * /home/murray/git/private-cloud/backup.sh > /mnt/wd-disk/backup/nextcloud/$(date +'%Y%m%d_%H%M%S').log
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+
+# m h  dom mon dow   command
+0 1 * * * cd /home/murray/git/private-cloud && ./backup.sh > /mnt/wd-disk/backup/nextcloud/$(date +'%Y%m%d_%H%M%S').log 2>&1
 ```
 
 ## Restore

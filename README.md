@@ -68,7 +68,7 @@ $ sudo docker-compose up -d
 
 2. Do the backup.
 ```bash
-$ sudo backup.sh
+$ cd /home/murray/git/private-cloud && sudo ./backup.sh
 
 # Or set in crontab for backup at 1 a.m every day
 $ sudo crontab -e
@@ -81,7 +81,7 @@ PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
 
 ## Restore
 ```bash
-$ sudo restore.sh
+$ cd /home/murray/git/private-cloud && sudo ./restore.sh
 ```
 
 ## Tips

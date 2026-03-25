@@ -86,5 +86,26 @@ $ cd /home/murray/git/private-cloud && sudo ./restore.sh
 
 ## Tips
 
+### Scan the newly added files
+You could copy files to the `data` folder and re-scan. For example,
+```console
+➜  ~/nextcloud/inbox
+$ sudo chown -R www-data:www-data .
+➜  ~/nextcloud/inbox
+$ sudo mv ./* ../data/admin/files/docs
+➜  ~/git/private-cloud git:(master) ✗
+$ docker-compose exec -T -u www-data app php occ files:scan --all
 
+Scanning files for 4 users
+Starting scan for user 1 out of 4 (admin)
+Starting scan for user 2 out of 4 (fish)
+Starting scan for user 3 out of 4 (guest)
+Starting scan for user 4 out of 4 (murray)
+
++---------+-------+--------------+
+| Folders | Files | Elapsed time |
++---------+-------+--------------+
+| 498     | 12949 | 00:01:37     |
++---------+-------+--------------+
+```
 

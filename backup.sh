@@ -42,7 +42,7 @@ function Cancel() {
 
 
 # TODO: customize the directory to store the backup data
-backup_dir='/mnt/wd-disk/backup/nextcloud'
+backup_dir='/mnt/sg-disk/backup/nextcloud'
 backup_root_dir="${backup_dir}/root"
 backup_data_dir="${backup_dir}/data"
 backup_db_dir="${backup_dir}/db"
